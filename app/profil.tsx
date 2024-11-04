@@ -1,17 +1,38 @@
 import { Text, View, Image, TouchableOpacity, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { logout, getCurrentUser } from "../services/authManager";
 
 export default function profile() {
   const router = useRouter();
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
+  
+  useEffect(() => {
+    // Fetch the current user's name on component mount
+    const user = getCurrentUser();
+    if (user) {
+      setUserName(user.name); // Assuming `name` is the field in your `users` collection
+      setEmail(user.email); // Assuming `name` is the field in your `users` collection
+    } else {
+      router.push('/');
+    }
+  }, []);
+
+
+  const handleLogout = async () => {
+    await logout(); // Call the logout function from authManager
+    router.push('/'); // Redirect to the login page after logout
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        {/* <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <View style={{width: 24}} />
         <Text style={styles.headerTitle}>Profil Saya</Text>
         <View style={{width: 24}} />
       </View>
@@ -21,12 +42,12 @@ export default function profile() {
           <View style={styles.profileImageContainer}>
             <Ionicons name="person-circle" size={100} color="#0967f5" />
           </View>
-          <Text style={styles.profileName}>Sudirman</Text>
-          <Text style={styles.profileEmail}>sudirman@gmail.com</Text>
+          <Text style={styles.profileName}>{userName}</Text>
+          <Text style={styles.profileEmail}>{email}</Text>
         </View>
 
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-profil')}>
             <View style={styles.menuItemContent}>
               <Ionicons name="person" size={24} color="#0967f5" />
               <Text style={styles.menuText}>Edit Profil</Text>
@@ -58,7 +79,7 @@ export default function profile() {
             <Ionicons name="chevron-forward" size={24} color="#666666" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, styles.logoutButton]} onPress={() => router.push('/')}>
+          <TouchableOpacity style={[styles.menuItem, styles.logoutButton]} onPress={handleLogout}>
             <View style={styles.menuItemContent}>
               <Ionicons name="log-out" size={24} color="#ff3b30" />
               <Text style={[styles.menuText, styles.logoutText]}>Keluar</Text>
@@ -69,7 +90,6 @@ export default function profile() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -82,11 +102,15 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 60,
     backgroundColor: '#0967f5',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#ffffff',
+    textAlign: 'center',
+    flex: 1,
   },
   content: {
     flex: 1,

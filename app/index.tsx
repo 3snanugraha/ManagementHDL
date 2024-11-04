@@ -1,13 +1,41 @@
-import { Text, View, Image, TouchableOpacity, StyleSheet, Dimensions, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { Text, View, Image, TouchableOpacity, StyleSheet, Dimensions, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from "react-native";
 import { useState } from "react";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import { login } from '../services/authManager'; // Import login function
 
 export default function Index() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
+
+  const handleLogin = async () => {
+    if (!username.trim()) {
+      setErrorMessage('Username tidak boleh kosong.');
+      return;
+    }
+    if (!password.trim()) {
+      setErrorMessage('Password tidak boleh kosong.');
+      return;
+    }
+
+    const loginFailed = "Username atau password salah. silahkan ulangi.";
+    const response = await login(username, password);
+
+    if (response.success) {
+      setErrorMessage('');  // Clear any previous error messages
+      router.push("/dashboard");
+    } else {
+      setErrorMessage(loginFailed || '');  // Set error message to display
+    }
+  };
+
+  // Test case
+  const handleLoginBypass = () => {
+    router.push("/dashboard");
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -26,7 +54,7 @@ export default function Index() {
         </View>
 
         <View style={styles.formContainer}>
-        <Text style={styles.formTitle}>Silahkan login terlebih dahulu.</Text>
+          <Text style={styles.formTitle}>Silahkan login terlebih dahulu.</Text>          
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -54,14 +82,19 @@ export default function Index() {
               />
             </TouchableOpacity>
           </View>
+          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => router.push("/dashboard")}
+            onPress={handleLogin}  // Use handleLogin function
           >
             <Text style={styles.buttonText}>Masuk</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.registerText}>Buat Akun?</Text>
+          </TouchableOpacity>
+          {/* Bypass feature */}
+          <TouchableOpacity onPress={() => router.push("/dashboard")}>
+            <Text style={styles.registerText}>Bypass Login</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -148,5 +181,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 15,
+  },
+  errorText: {
+    color: '#f76f6f',
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });

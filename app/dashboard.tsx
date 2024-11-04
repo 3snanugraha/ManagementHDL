@@ -1,12 +1,23 @@
   import { Text, View, Image, TouchableOpacity, StyleSheet, Dimensions, ScrollView } from "react-native";
   import { Ionicons } from '@expo/vector-icons';
   import { useRouter } from "expo-router";
-  import { useState } from "react";
+  import { useEffect, useState } from "react";
+  import { getCurrentUser, logout } from "../services/authManager";
 
   export default function dashboard() {
     const router = useRouter();
     const [showDropdown, setShowDropdown] = useState(false);
-
+    const [userName, setUserName] = useState('');
+  
+    useEffect(() => {
+      // Fetch the current user's name on component mount
+      const user = getCurrentUser();
+      if (user) {
+        setUserName(user.name); // Assuming `name` is the field in your `users` collection
+      } else {
+        router.push('/');
+      }
+    }, []);
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -32,8 +43,8 @@
 
         <ScrollView style={[styles.content, { zIndex: 1 }]}>
           <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeText}>Selamat Datang!</Text>
-            <Text style={styles.dateText}>Senin, 1 Januari 2024</Text>
+            <Text style={styles.welcomeText}>Selamat Datang, {userName}!</Text>
+            <Text style={styles.dateText}>{new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</Text>
           </View>
 
           <View style={styles.menuGrid}>
@@ -98,6 +109,8 @@
       backgroundColor: '#0967f5',
       elevation: 4,
       zIndex: 2000,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20,
     },
     headerTitle: {
       fontSize: 24,
